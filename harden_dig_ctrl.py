@@ -89,7 +89,7 @@ def main():
     ]
     
     width = 170 #150
-    height = 217
+    height = 217+5
 
     # Get environment variables
     PDK_ROOT          = os.getenv('PDK_ROOT')
@@ -157,8 +157,8 @@ def main():
         "DIE_AREA" : [0, 0, width, height],
         "FP_SIZING" : "absolute",
         "PL_TARGET_DENSITY_PCT" : 85.0,
-        "BOTTOM_MARGIN_MULT" : 2, #4
-        "TOP_MARGIN_MULT" : 4,
+        "BOTTOM_MARGIN_MULT" : 1, #4
+        "TOP_MARGIN_MULT" : 2,
         "LEFT_MARGIN_MULT" : 12,
         "RIGHT_MARGIN_MULT" : 12,
     }
