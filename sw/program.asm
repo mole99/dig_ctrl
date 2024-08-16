@@ -8,8 +8,10 @@ start:
 loop:
     LOAD R0 @R2
     
-    # Write char in R0 to PORT0
-    PORTOUT 0x00
+    # Write char in R0 to PORT0, PORT1, PORT0
+    OUT 0x00 # Output Port
+    OUT 0x01 # Mixed Signal Output Port
+    OUT 0x02 # SPI out
     
     #ADD R2 R1
     INC R2
@@ -21,22 +23,22 @@ loop:
     JUMP R0
 
 end:
-    # Store PORT0 in R0
-    PORTIN 0x00
-    PORTIN 0x01
-    PORTIN 0x02
+    # Store PORT0, PORT1, PORT2 in R0
+    IN 0x00 # Input Port
+    IN 0x01 # Mixed Input Output Port
+    IN 0x02 # SPI in
     
-    # Write R0 to PORT0
-    PORTOUT 0x03
-    PORTOUT 0x02
-    PORTOUT 0x01
+    # Write R0 to PORT2, PORT1, PORT0
+    OUT 0x02
+    OUT 0x01
+    OUT 0x00
     
     JUMPI &end
 
 # Data
 
-my:byte:BYTE 54
+my_byte: BYTE 42
 
 start_string:
-    STRING "HelloWorld!"
+    STRING "Hello World!"
 end_string:

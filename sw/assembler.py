@@ -7,8 +7,8 @@ instructions = {
 
     'NOP' : {'format': 'implicit', 'opcode': '00_0000_00', 'short': '', 'description': 'No operation.', 'category': 'NOP'},
     'JUMPI' : {'format': 'immediate', 'opcode': '00_0000_01', 'short': 'IP <= IMMEDIATE', 'description': 'Jump to the address of the immediate.', 'category': 'Control'},
-    'PORTIN' : {'format': 'immediate', 'opcode': '00_0000_10', 'short': 'PORT[IMMEDIATE] <= R0', 'description': 'Write to the given port.', 'category': 'I/O'},
-    'PORTOUT' : {'format': 'immediate', 'opcode': '00_0000_11', 'short': 'R0 <= PORT[IMMEDIATE]', 'description': 'Read from the given port.', 'category': 'I/O'},
+    'IN' : {'format': 'immediate', 'opcode': '00_0000_10', 'short': 'PORT[IMMEDIATE] <= R0', 'description': 'Write to the given port.', 'category': 'I/O'},
+    'OUT' : {'format': 'immediate', 'opcode': '00_0000_11', 'short': 'R0 <= PORT[IMMEDIATE]', 'description': 'Read from the given port.', 'category': 'I/O'},
     
     'INC' : {'format': 'single_operand', 'opcode': '00_0001', 'short': 'RA <= RA + 1', 'description': 'Increment RA.', 'category': 'Arithmetic'},
     'DEC' : {'format': 'single_operand', 'opcode': '00_0010', 'short': 'RA <= RA - 1', 'description': 'Decrement RA.', 'category': 'Arithmetic'},
@@ -39,7 +39,6 @@ instructions = {
     'IFNE' : {'format': 'dual_operand', 'opcode': '11_01', 'short': 'TAKE <= RA != RB', 'description': 'Execute the next instruction if RA does not equal RB.', 'category': 'Branches'},
     'IFGE' : {'format': 'dual_operand', 'opcode': '11_10', 'short': 'TAKE <= RA >= RB', 'description': 'Execute the next instruction if RA is greater then or equal RB.', 'category': 'Branches'},
     'IFLT' : {'format': 'dual_operand', 'opcode': '11_11', 'short': 'TAKE <= RA < RB', 'description': 'Execute the next instruction if RA is less than RB.', 'category': 'Branches'},
-    
     
     # No operation
     # 'NOP' : {'format': 'pseudo', 'opcode': '01_00_00_00', 'short': 'R0 <= R0 & R0', 'description': 'No operation.', 'category': 'Pseudo'}
@@ -95,6 +94,29 @@ def get_register(string):
     return int(string[1:])
 
 
+def custom_split(line):
+
+    tokens = ['']
+    
+    index = 0
+    is_string = False
+    for char in line:
+    
+        if char == '"':
+            is_string = not is_string
+    
+        if char.isspace() and not is_string:
+            if tokens[index] != '':
+                index += 1
+                tokens.append('')
+        else:
+            tokens[index] += char
+
+    if tokens[-1] == '':
+        del tokens[-1]
+
+    return tokens
+
 def process_and_replace(program, verbose=False):
     # Remove all comments
     program = os.linesep.join([s.split('#', 1)[0] for s in program.splitlines()])
@@ -109,7 +131,8 @@ def process_and_replace(program, verbose=False):
     addr = 0
     symbol_table = {}
     for line in program.splitlines():
-        token = line.split()
+        token = custom_split(line)
+        print(token)
 
         if token[0] in instructions:
             instr = instructions[token[0]]
@@ -170,7 +193,7 @@ def assemble(program, verbose=False):
         if verbose:
             print(f"Processing line: {line}")
         
-        token = line.split()
+        token = custom_split(line)
         
         if token[0] in instructions:
             instr = instructions[token[0]]
@@ -271,7 +294,7 @@ def assemble(program, verbose=False):
 
             for char in string:
                 ascii = ord(char)
-                assembled.append(f'{ascii:08b}    // {char}')
+                assembled.append(f'{ascii:08b}    // \'{char}\'')
 
         elif token[0].endswith(':'):
             pass
