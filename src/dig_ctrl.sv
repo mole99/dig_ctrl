@@ -14,16 +14,22 @@ module dig_ctrl (
     input  logic spi_cs_i,
     
     // Mode signal
-    // '0' = command mode
-    // '1' = data mode
+    // '0' = run cpu
+    // '1' = write to memory
     input  logic mode_i,
     
-    // Port
+    // Input Port
     input  logic [7:0]  port_i,
+
+    // Output Port
     output logic [7:0]  port_o,
     
+    // Mixed Signal Ports
+    input  logic        port_ms_i,
+    output logic [7:0]  port_ms_o,
+    
     // Debug signals
-    input  logic [1:0] debug_i,
+    input  logic       debug_i,
     output logic [1:0] debug_o
 );
 
@@ -39,8 +45,6 @@ module dig_ctrl (
     logic [7:0] spi_data_i;
     logic [7:0] spi_data_o;
     logic       spi_stb_o;
-    
-    assign spi_data_i = "X";
     
     spi_receiver spi_receiver_inst (
         .clk_i          (clk_i),
@@ -60,15 +64,51 @@ module dig_ctrl (
     /* Latch Memory */
     
     assign spi_data_out = '0;
-    assign spi_addr = '0;
     
     always_comb begin
-        if (mode_i == 1'b0) begin
-          data_out = spi_data_out;
+        if (mode_i == 1'b1) begin
+          data_out = spi_data_o;
           addr = spi_addr;
         end else begin
           data_out = cpu_data_out;
           addr = cpu_addr;
+        end
+    end
+    
+    
+    logic mode_sync;
+    
+    synchronizer #(
+        .FF_COUNT (2)
+    ) synchronizer_mode_i_inst (
+        .clk        (clk_i),
+        .reset_n    (rst_ni),
+        .in         (mode_i),
+        .out        (mode_sync)
+    );
+    
+    logic mode_d;
+    
+    always_ff @(posedge clk_i, negedge rst_ni) begin
+        if (!rst_ni) begin
+            mode_d <= 1'b0;
+        end else begin
+            mode_d <= mode_sync;
+            
+            // Write to memory
+            if (mode_sync) begin
+                // For each byte received,
+                // increase the addr
+                if (spi_stb_o) begin
+                    spi_addr <= spi_addr + 1;
+                end
+            end
+            
+            // Rising edge mode
+            if (!mode_d && mode_sync) begin
+                // Reset spi_addr
+                spi_addr <= '0;
+            end
         end
     end
     
@@ -86,7 +126,7 @@ module dig_ctrl (
         .addr_i     (addr),
         .data_i     (data_out),
         .data_o     (data_in),
-        .we_i       (wr_en)
+        .we_i       (wr_en || (mode_sync && spi_stb_o)) // TODO long enough?
     );
     
     logic stb_d, stb_dd;
@@ -110,7 +150,7 @@ module dig_ctrl (
         .RESET_ADDR (6'd0) 
     ) cpu_inst (
         .clk_i      (clk_i),
-        .rst_ni     (rst_ni),
+        .rst_ni     (rst_ni && !mode_sync),
         .execute    (1'b1),
         
         .stb_o      (stb),
@@ -134,36 +174,58 @@ module dig_ctrl (
     // TODO
     always_ff @(posedge clk_i, negedge rst_ni) begin
         if (!rst_ni) begin
-            port_o <= '0;
+            port_o      <= '0;
+            port_ms_o   <= '0;
+            spi_data_i  <= '0;
         end else begin
             if (port_stb) begin
                 case (port_sel)
-                    8'h00: port_o <= port_out;
+                    8'h00: port_o     <= port_out; // Output Port
+                    8'h01: port_ms_o  <= port_out; // Mixed Signal Output Port
+                    8'h02: spi_data_i <= port_out; // SPI Out
                     default: ;
                 endcase
             end
         end
     end
     
+    logic port_ms_sync_i;
+    
+    synchronizer #(
+        .FF_COUNT (2)
+    ) synchronizer_port_ms_i_inst (
+        .clk        (clk_i),
+        .reset_n    (rst_ni),
+        .in         (port_ms_i),
+        .out        (port_ms_sync_i)
+    );
+    
+    logic [7:0] port_sync_i;
+    
+    synchronizer #(
+        .FF_COUNT (2)
+    ) synchronizer_port_i_inst[7:0] (
+        .clk        (clk_i),
+        .reset_n    (rst_ni),
+        .in         (port_i),
+        .out        (port_sync_i)
+    );
+    
     always_comb begin
         case (port_sel)
-            8'h00: port_in = port_i;
-            8'h01: port_in = "A";
-            8'h02: port_in = "B";
-            8'h03: port_in = "C";
+            8'h00: port_in = port_sync_i;               // Input Port
+            8'h01: port_in = {7'b0, port_ms_sync_i};    // Mixed Signal Input Port
+            8'h02: port_in = spi_data_o;                // SPI in
             default: port_in = 8'h00;
         endcase
     end
-
 
     /* Debug */
     
     always_comb begin
         case (debug_i)
-            2'b00: debug_o = {1'b0, 1'b0};
-            2'b01: debug_o = {1'b0, 1'b0};
-            2'b10: debug_o = {1'b0, 1'b0};
-            2'b11: debug_o = {1'b0, 1'b0};
+            1'b0: debug_o = {1'b0, 1'b0};
+            1'b1: debug_o = {1'b0, 1'b0};
         endcase
     end
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2022 Leo Moser <leo.moser@pm.me>
+// SPDX-FileCopyrightText: © 2024 Leo Moser <leo.moser@pm.me>
 // SPDX-License-Identifier: Apache-2.0
 
 `timescale 1ns/1ps
@@ -17,8 +17,12 @@ module tb;
     logic       rst_n;     // reset_n - low to reset
     
     // Mixed Signal Ports
-    logic [7:0]  port_i;
-    logic [7:0]  port_o;
+    logic        port_ms_i;
+    logic [7:0]  port_ms_o;
+    logic        clk_o;
+    
+    logic mode;
+    logic debug_i;
     
     wire spi_sclk;
     wire spi_mosi;
@@ -37,8 +41,9 @@ module tb;
         .rst_n,     // reset_n - low to reset
         
         // Mixed Signal Ports
-        .port_i,
-        .port_o
+        .port_ms_i,
+        .port_ms_o,
+        .clk_o
     );
     
     // Bidir PMOD - SPI and additional signals
@@ -48,6 +53,9 @@ module tb;
     assign uio_in[1] = spi_mosi;
     assign spi_miso = uio_out[2];
     assign uio_in[3] = spi_sclk;
+    
+    assign uio_in[4] = mode;
+    assign uio_in[5] = debug_i;
 
     initial begin
         $dumpfile("tb.fst");

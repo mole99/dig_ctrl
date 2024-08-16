@@ -53,7 +53,7 @@ module latch_mem #(
 	endgenerate
 
     // Latch memory
-	wire [NUM_BITS-1:0] data[NUM_WORDS];
+	wire [NUM_BITS-1:0] RAM[NUM_WORDS];
 
 	generate
 
@@ -67,13 +67,13 @@ module latch_mem #(
 			for (genvar n_bit = 0; n_bit < NUM_BITS; n_bit++) begin : gen_latches
 
                 // Positive storage latches
-				sky130_fd_sc_hd__dlxtp_1 p_latch(.GATE(gclk[word]), .D(wdata[n_bit]), .Q(data[word][n_bit]));
+				sky130_fd_sc_hd__dlxtp_1 p_latch(.GATE(gclk[word]), .D(wdata[n_bit]), .Q(RAM[word][n_bit]));
 
 			end
 		end
 	endgenerate
   
     // Output multiplexer
-	assign data_o = data[addr_i];
+	assign data_o = RAM[addr_i];
 
 endmodule

@@ -15,25 +15,13 @@ module dig_ctrl_top (
     input  logic       rst_n,     // reset_n - low to reset
     
     // Mixed Signal Ports
-    input  logic [7:0] port_i,
-    output logic [7:0] port_o
+    input  logic       port_ms_i,
+    output logic [7:0] port_ms_o,
+    output logic       clk_o
 );
-
-    /*always_ff @(posedge clk, negedge rst_n) begin
-        if (!rst_n) begin
-            uo_out <= 8'b0;
-            uio_out <= 8'b0;
-            uio_oe <= 8'b0;
-        end else begin
-            if (ena) begin
-                uo_out <= ui_in;
-                uio_out <= uio_in;
-                uio_oe <= uio_in;
-            end
-        end
-    end
-
-    assign port_o = port_i;*/
+    // Output clock to mixed signal domain
+    // Note: inputs need synchronization
+    assign clk_o = clk;
 
     logic rst_n_sync;
 
@@ -49,14 +37,14 @@ module dig_ctrl_top (
     
     logic mode;
     
-    logic [1:0] debug_i;
+    logic debug_i;
     logic [1:0] debug_o;
     
     dig_ctrl #(
     
     ) dig_ctrl_inst (
-        .clk_i      (clk),
-        .rst_ni     (rst_n_sync),
+        .clk_i          (clk),
+        .rst_ni         (rst_n_sync),
 
         // SPI signals
         .spi_sclk_i     (spi_sclk),
@@ -67,25 +55,20 @@ module dig_ctrl_top (
         // Mode signal
         .mode_i         (mode),
         
-        // Port
-        .port_i (port_i),
-        .port_o (port_o),
+        // Input Port
+        .port_i         (ui_in),
+        
+        // Output Port
+        .port_o         (uo_out),
+        
+        // Mixed Signal Ports
+        .port_ms_i      (port_ms_i),
+        .port_ms_o      (port_ms_o),
         
         // Debug signals
-        .debug_i (debug_i),
-        .debug_o (debug_o)
+        .debug_i        (debug_i),
+        .debug_o        (debug_o)
     );
-    
-    // Output PMOD
-
-    assign uo_out[0] = 1'b0;
-    assign uo_out[1] = 1'b0;
-    assign uo_out[2] = 1'b0;
-    assign uo_out[3] = 1'b0;
-    assign uo_out[4] = 1'b0;
-    assign uo_out[5] = 1'b0;
-    assign uo_out[6] = 1'b0;
-    assign uo_out[7] = 1'b0;
     
     // Bidir PMOD - SPI and additional signals
     
@@ -96,22 +79,9 @@ module dig_ctrl_top (
     assign spi_sclk   = uio_in[3];  assign uio_oe[3] = 1'b0; assign uio_out[3] = 1'b0;
 
     // Bottom row
-    assign uio_out[4] = 1'b0; assign uio_oe[4] = 1'b1;
-    assign uio_out[5] = 1'b0; assign uio_oe[5] = 1'b1;
-    assign uio_out[6] = debug_o[0]; assign uio_oe[6] = 1'b0;
-    assign uio_out[7] = debug_o[1]; assign uio_oe[7] = 1'b0;
-
-    // Input PMOD - mode
-    
-    assign mode = ui_in[0];
-    assign debug_i[0] = ui_in[1];
-    assign debug_i[1] = ui_in[2];
-    
-    //ui_in[3]
-    //ui_in[4]
-    //ui_in[5]
-    //ui_in[6]
-    //ui_in[7]
-    
+    assign mode = uio_in[4]; assign uio_out[4] = 1'b0; assign uio_oe[4] = 1'b0; // Input
+    assign debug_i = uio_in[5]; assign uio_out[5] = 1'b0; assign uio_oe[5] = 1'b0; // Input
+    assign uio_out[6] = debug_o[0]; assign uio_oe[6] = 1'b1; // Output
+    assign uio_out[7] = debug_o[1]; assign uio_oe[7] = 1'b1; // Output
 
 endmodule
