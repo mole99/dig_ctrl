@@ -38,10 +38,10 @@ def io_place(reader):
     ])
 
     pins_port_o = []
-    pins_port_o.extend([ f'port_o[{i}]' for i in range(8) ])
+    pins_port_o.extend([ f'port_ms_o[{i}]' for i in range(8) ])
     
     pins_port_i = []
-    pins_port_i.extend([ f'port_i[{i}]' for i in range(8) ])
+    pins_port_i.extend([ 'port_ms_i', 'clk_o'])
 
     # Place pins
     bterms = []
@@ -57,7 +57,7 @@ def io_place(reader):
     bterms = []
     for pin in pins_port_i:
         bterms.append(bterm_map.pop(pin))
-    place_pins_side(die_area, layer_east, bterms, 'E', 'right', 2.76*1000, 25*1000 + 0.3/2*1000)
+    place_pins_side(die_area, layer_east, bterms, 'E', 'right', 55*1000, 45*1000 + 0.3/2*1000)
 
 if __name__ == "__main__":
     io_place()

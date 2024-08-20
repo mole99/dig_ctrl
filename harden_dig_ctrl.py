@@ -143,9 +143,12 @@ def main():
         "FP_PDN_HORIZONTAL_LAYER" : "met5",
         "FP_PDN_VERTICAL_LAYER" : "met4",
         "FP_PDN_MULTILAYER" : False, # only use vertical
-        #"FP_PDN_VPITCH" : 100,
+        "FP_PDN_VPITCH" : 120,
         "VDD_NETS" : ["VDPWR"],
         "GND_NETS" : ["VGND"],
+        
+        # DRC errors
+        "EXTRA_EXCLUDED_CELLS": ['sky130_fd_sc_hd__and3_1'],
         
         # Routing
         #"RT_CLOCK_MAX_LAYER" : "met4",
@@ -156,7 +159,7 @@ def main():
         # Floorplanning
         "DIE_AREA" : [0, 0, width, height],
         "FP_SIZING" : "absolute",
-        "PL_TARGET_DENSITY_PCT" : 85.0,
+        "PL_TARGET_DENSITY_PCT" : 77.0,
         "BOTTOM_MARGIN_MULT" : 1, #4
         "TOP_MARGIN_MULT" : 2,
         "LEFT_MARGIN_MULT" : 12,
