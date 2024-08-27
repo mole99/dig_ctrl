@@ -83,7 +83,7 @@ Some tests are deactivated if run via `GL=1`.
 |DEC RA|RA <= RA - 1|Decrement RA.|
 |DOUBLE RA|RA <= RA * 2|Double the value of RA.|
 |HALF RA|RA <= RA / 2|Half the value of RA.|
-|TWOS RA|RA <= TODO|Form the twos-complement of RA|
+|TWOS RA|RA <= (~RA)+1|Form the twos-complement of RA|
 |ADD RA RB|RA <= RA + RB|Add RA and RB, result written into RA.|
 ### Immediate
 |Instruction|Operation|Description|

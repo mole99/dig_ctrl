@@ -17,7 +17,7 @@ instructions = {
     'DOUBLE' : {'format': 'single_operand', 'opcode': '00_0100', 'short': 'RA <= RA * 2', 'description': 'Double the value of RA.', 'category': 'Arithmetic'},
     'HALF' : {'format': 'single_operand', 'opcode': '00_0101', 'short': 'RA <= RA / 2', 'description': 'Half the value of RA.', 'category': 'Arithmetic'},
     'LDI' : {'format': 'single_operand_immediate', 'opcode': '00_0110', 'short': 'RA <= IMMEDIATE', 'description': 'Load RA with immediate.', 'category': 'Immediate'},
-    'TWOS' : {'format': 'single_operand', 'opcode': '00_0111', 'short': 'RA <= TODO', 'description': 'Form the twos-complement of RA', 'category': 'Arithmetic'},
+    'TWOS' : {'format': 'single_operand', 'opcode': '00_0111', 'short': 'RA <= (~RA)+1', 'description': 'Form the twos-complement of RA', 'category': 'Arithmetic'},
 
     'STORE' : {'format': 'dual_operand', 'opcode': '00_10', 'short': 'RAM[RA] <= RB', 'description': 'Write to the memory.', 'category': 'Memory'},
     'LOAD' : {'format': 'dual_operand', 'opcode': '00_11', 'short': 'RA <= RAM[RB]', 'description': 'Read from the memory.', 'category': 'Memory'},
