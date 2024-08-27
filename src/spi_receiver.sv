@@ -84,7 +84,7 @@ module spi_receiver (
                 end
             end
 
-            // Echo back the previous values
+            // Send back the data_i value
             if (!spi_cs_sync && spi_sclk_rising) begin
                 spi_miso_o <= data_i[7-spi_cnt];
             end

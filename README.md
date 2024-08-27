@@ -1,16 +1,66 @@
 # Digital Controller
 
-A digital 8-bit controller with 64 bytes of RAM used for the [tt08-aicd-playground](https://github.com/mole99/tt08-aicd-playground) mixed-signal design.
+An 8-bit digital controller with 64 bytes of RAM used for the [tt08-aicd-playground](https://github.com/mole99/tt08-aicd-playground) mixed-signal design.
 
-# Assembler
+- A set of instructions to perform arithmetic calculations, modify the control flow via jumps and branches, and interface with the analog section
+- 64 bytes of latch-based RAM for instruction/data initialized via SPI
+- `IN`/`OUT` instructions to interface with the outside world and the analog part
+- Hardened for 100MHz clock frequency with Sky130A
 
-The assembler is a simple Python script and can be found under `sw/`. 
+**OUT Ports:**
+
+| Port Address                   |                    |
+|--------------------|--------------------|
+| 0x00                   | Output Port                   |
+| 0x01                   | Mixed Signal Output Port                   |
+| 0x02                   | SPI out                   |
+
+**IN Ports:**
+
+| Port Address                   |                    |
+|--------------------|--------------------|
+| 0x00                   | Input Port                   |
+| 0x01                   | Mixed Signal Input Port                   |
+| 0x02                   | SPI in                   |
+
+
+## Example Programs
+
+Example programs can be found under `sw/`:
+
+- `hello_world.asm` - Output "Hello World!" on all output ports.
+- `sawtooth.asm` - Output a sawtooth wave to the analog part.
+- `sar_adc.asm` - Perform the SAR algorithm to convert an analog value into the digital domain.
+
+## Assembler
+
+The assembler is a simple Python script located under `sw/`. 
 
 ```
 python3 assembler.py program.asm program.bit
 ```
 
-# Supported Instructions
+## Verification
+
+The verification of the digital design was done using [cocotb](https://www.cocotb.org/) and [Icarus Verilog](https://github.com/steveicarus/iverilog).
+
+Install `cocotb==1.9.0` and a recent version of `iverilog`.
+
+To perform RTL simulations, change your cwd to `tb/` and run:
+
+```
+python3 test.py
+```
+
+For GL simulations, simply set `GL`:
+
+```
+GL=1 python3 test.py
+```
+
+Some tests are deactivated if run via `GL=1`.
+
+## Supported Instructions
 
 ### NOP
 |Instruction|Operation|Description|

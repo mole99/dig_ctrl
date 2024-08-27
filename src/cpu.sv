@@ -4,7 +4,8 @@
 `default_nettype none
 
 module cpu #(
-    parameter bit [5:0] RESET_ADDR
+    parameter bit [5:0] RESET_ADDR = 0,
+    parameter int       ADDR_WIDTH = 6
 )(
     input  logic        clk_i,
     input  logic        rst_ni,
@@ -32,6 +33,13 @@ module cpu #(
     // General purpose registers
     logic [7:0] regs [NUM_REGS];
 
+    // Debugging
+    logic [7:0] r0, r1, r2, r3;
+    assign r0 = regs[0];
+    assign r1 = regs[1];
+    assign r2 = regs[2];
+    assign r3 = regs[3];
+
     // Skip next instruction
     logic skip;
 
@@ -51,9 +59,6 @@ module cpu #(
     assign arg1 = instr[3:2];
     
     logic is_immediate, is_write, is_read;
-    
-    assign port_stb_o = instr == 8'b00_0000_11 // PORTOUT
-                        && cpu_state == EXECUTE;
     
     assign is_immediate = instr[7:2] == 6'b00_0110  // LDI
                       || instr == 8'b00_0000_01  // JUMPI
@@ -89,14 +94,14 @@ module cpu #(
             end
             READ: begin
                 stb_o = prev_state != cpu_state;
-                addr_o = is_immediate ? ip : regs[arg1];
+                addr_o = is_immediate ? ip : regs[arg1][ADDR_WIDTH-1:0];
             end
             EXECUTE: begin
             end
             WRITE: begin
                 stb_o = prev_state != cpu_state;
                 write_o = 1'b1;
-                addr_o = regs[arg0];
+                addr_o = regs[arg0][ADDR_WIDTH-1:0];
                 data_o = regs[arg1];
             end
         endcase
@@ -112,11 +117,15 @@ module cpu #(
             skip        <= 1'b0;
             instr       <= '0;
             cpu_state   <= INIT;
+            port_o      <= '0;
+            port_stb_o  <= 1'b0;
             
             // Memory
             data <= '0;
 
         end else begin
+        
+            port_stb_o <= 1'b0;
         
             if (execute) begin
 
@@ -174,13 +183,14 @@ module cpu #(
                                     ;
                                 end
                                 8'b00_0000_01: begin // JUMPI
-                                    ip <= data;
+                                    ip <= data[ADDR_WIDTH-1:0];
                                 end
                                 8'b00_0000_10: begin // PORTIN
                                     regs[0] <= port_i;
                                 end
                                 8'b00_0000_11: begin // PORTOUT
                                     port_o <= regs[0];
+                                    port_stb_o <= 1'b1;
                                 end
     
                                 // Single arg instructions 00_00
@@ -191,7 +201,7 @@ module cpu #(
                                     regs[arg0] <= regs[arg0] - 1;
                                 end
                                 8'b00_0011_??: begin // JUMP
-                                    ip <= regs[arg0];
+                                    ip <= regs[arg0][ADDR_WIDTH-1:0];
                                 end
 
                                 // Single arg instructions 00_01

@@ -4,6 +4,11 @@
 `default_nettype none
 
 module dig_ctrl_top (
+    `ifdef USE_POWER_PINS
+    input  logic VDPWR,
+    input  logic VGND,
+    `endif
+
     // Tiny Tapeout digital interface
     input  logic [7:0] ui_in,    // Dedicated inputs
     output logic [7:0] uo_out,   // Dedicated outputs

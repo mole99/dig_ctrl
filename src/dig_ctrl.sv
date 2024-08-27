@@ -63,18 +63,8 @@ module dig_ctrl (
                             
     /* Latch Memory */
     
-    assign spi_data_out = '0;
-    
-    always_comb begin
-        if (mode_i == 1'b1) begin
-          data_out = spi_data_o;
-          addr = spi_addr;
-        end else begin
-          data_out = cpu_data_out;
-          addr = cpu_addr;
-        end
-    end
-    
+    logic [7:0] data_out, cpu_data_out;
+    logic [5:0] addr, spi_addr, cpu_addr;
     
     logic mode_sync;
     
@@ -87,11 +77,25 @@ module dig_ctrl (
         .out        (mode_sync)
     );
     
+    // Memory control
+    // mode_sync = 0: cpu controls the memory
+    // mode_sync = 1: spi controls the memory
+    always_comb begin
+        if (mode_sync == 1'b1) begin
+          data_out = spi_data_o;
+          addr = spi_addr;
+        end else begin
+          data_out = cpu_data_out;
+          addr = cpu_addr;
+        end
+    end
+
     logic mode_d;
     
     always_ff @(posedge clk_i, negedge rst_ni) begin
         if (!rst_ni) begin
             mode_d <= 1'b0;
+            spi_addr <= '0;
         end else begin
             mode_d <= mode_sync;
             
@@ -112,9 +116,7 @@ module dig_ctrl (
         end
     end
     
-    logic [5:0] addr, cpu_addr, spi_addr;
     logic [7:0] data_in;
-    logic [7:0] data_out, cpu_data_out, spi_data_out;
     logic wr_en;
     
     latch_mem #(
@@ -126,7 +128,7 @@ module dig_ctrl (
         .addr_i     (addr),
         .data_i     (data_out),
         .data_o     (data_in),
-        .we_i       (wr_en || (mode_sync && spi_stb_o)) // TODO long enough?
+        .we_i       (wr_en || (mode_sync && spi_stb_o))
     );
     
     logic stb_d, stb_dd;
@@ -145,6 +147,11 @@ module dig_ctrl (
     assign ack = wr_en ? stb_dd : stb_d;
     
     /* CPU execution */
+
+    logic [7:0] port_in;
+    logic [7:0] port_out;
+    logic [7:0] port_sel;
+    logic port_stb;
 
     cpu #(
         .RESET_ADDR (6'd0) 
@@ -165,13 +172,8 @@ module dig_ctrl (
         .port_sel_o (port_sel),
         .port_stb_o (port_stb)
     );
-
-    logic [7:0] port_in;
-    logic [7:0] port_out;
-    logic [7:0] port_sel;
-    logic port_stb;
     
-    // TODO
+    // Output port
     always_ff @(posedge clk_i, negedge rst_ni) begin
         if (!rst_ni) begin
             port_o      <= '0;
@@ -211,6 +213,7 @@ module dig_ctrl (
         .out        (port_sync_i)
     );
     
+    // Input port
     always_comb begin
         case (port_sel)
             8'h00: port_in = port_sync_i;               // Input Port
@@ -224,8 +227,8 @@ module dig_ctrl (
     
     always_comb begin
         case (debug_i)
-            1'b0: debug_o = {1'b0, 1'b0};
-            1'b1: debug_o = {1'b0, 1'b0};
+            1'b0: debug_o = {mode_sync, port_ms_sync_i};
+            1'b1: debug_o = {wr_en, spi_stb_o};
         endcase
     end
 

@@ -29,7 +29,17 @@ module tb;
     wire spi_miso;
     wire spi_cs;
     
+    `ifdef USE_POWER_PINS
+    wire VDPWR;
+    wire VGND;
+    `endif
+    
     dig_ctrl_top dig_ctrl_top_inst (
+        `ifdef USE_POWER_PINS
+        .VDPWR,
+        .VGND,
+        `endif
+    
         // Tiny Tapeout digital interface
         .ui_in,    // Dedicated inputs
         .uo_out,   // Dedicated outputs

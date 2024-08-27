@@ -83,7 +83,7 @@ def main():
         'src/dig_ctrl_top.sv',
         'src/dig_ctrl.sv',
         'src/cpu.sv',
-        'src/latch_mem_2.sv',
+        'src/latch_mem.sv',
         'src/spi_receiver.sv',
         'src/synchronizer.sv'
     ]
@@ -137,7 +137,7 @@ def main():
 
         # CTS
         "CLOCK_PORT" : "clk",
-        "CLOCK_PERIOD" : 50,
+        "CLOCK_PERIOD" : 10, # 10ns = 100MHz
 
         # Power Distribution Network
         "FP_PDN_HORIZONTAL_LAYER" : "met5",
@@ -192,7 +192,9 @@ def main():
     if not os.path.exists('pnl/'):
         os.makedirs('pnl/')
     
-    # Copy final gds
+    print(f'Copying final views')
+    
+    # Copy final views
     file_list = sorted(os.listdir(os.path.join('runs/')))
     output_dir = file_list[-1]
     gds_path = os.path.join('runs/', output_dir, f'final/gds/{design_name}.gds')
@@ -201,7 +203,6 @@ def main():
     shutil.copyfile(gds_path, f'gds/{design_name}.gds')
     shutil.copyfile(spice_path, f'spice/{design_name}.spice')
     shutil.copyfile(pnl_path, f'pnl/{design_name}.pnl.v')
-    
 
 if __name__ == "__main__":
     main()

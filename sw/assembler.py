@@ -132,7 +132,6 @@ def process_and_replace(program, verbose=False):
     symbol_table = {}
     for line in program.splitlines():
         token = custom_split(line)
-        print(token)
 
         if token[0] in instructions:
             instr = instructions[token[0]]
@@ -160,15 +159,6 @@ def process_and_replace(program, verbose=False):
         print(f'---------------------------')
         for symbol, addr in symbol_table.items():
             print(f'{symbol:<15} | {addr:<3} | {addr:02x}')
-
-    # Replace all symbols with their address
-    """program_processed = []
-    for line in program.splitlines():
-        for symbol, addr in symbol_table.items():
-
-            line = line.replace(f'&{symbol}', f'{addr}')
-
-        program_processed.append(line)"""
 
     return program, symbol_table
 
